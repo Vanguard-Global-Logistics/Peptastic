@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PEPTASTIC™</title>
+
+<style>
+body {
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;
+    background: radial-gradient(circle at top,#0b1220,#05070d);
+    color:#fff;
+}
+
+/* HEADER */
+header {
+    text-align:center;
+    padding:20px 10px 5px;
+    font-size:26px;
+    font-weight:700;
+    letter-spacing:2px;
+}
+
+.sub {
+    text-align:center;
+    color:#4da3ff;
+    font-size:12px;
+    margin-bottom:10px;
+}
+
+/* NAV */
+.nav {
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:8px;
+    padding:10px;
+}
+
+.nav button {
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.1);
+    color:#fff;
+    padding:10px 12px;
+    border-radius:12px;
+    cursor:pointer;
+    font-size:12px;
+}
+
+.nav button:hover {
+    background:#4da3ff;
+    color:#000;
+}
+
+/* LAYOUT */
+.container {
+    max-width:900px;
+    margin:auto;
+    padding:15px;
+}
+
+.card {
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:16px;
+    padding:15px;
+    margin-top:12px;
+    backdrop-filter: blur(12px);
+}
+
+/* INPUTS */
+input, select {
+    width:100%;
+    padding:10px;
+    margin:6px 0;
+    border-radius:10px;
+    border:none;
+    background:rgba(255,255,255,0.08);
+    color:#fff;
+}
+
+button {
+    width:100%;
+    padding:10px;
+    border-radius:10px;
+    border:none;
+    background:#4da3ff;
+    color:#000;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:8px;
+}
+
+/* OUTPUT */
+.result {
+    margin-top:10px;
+    font-size:18px;
+    color:#00ffcc;
+}
+
+/* SMALL */
+.small {
+    font-size:12px;
+    opacity:0.7;
+    margin-top:5px;
+}
+
+/* HIDE */
+.hidden {display:none;}
+</style>
+</head>
+
+<body>
+
+<header>PEPTASTIC™</header>
+<div class="sub">Vanguard Performance Labs • Veteran Owned • Veteran Operated</div>
+
+<div class="nav">
+<button onclick="show('calc')">Calculator</button>
+<button onclick="show('lib')">Library</button>
+<button onclick="show('mix')">Saved Mixes</button>
+<button onclick="show('inv')">Inventory</button>
+<button onclick="show('cost')">Cost</button>
+</div>
+
+<div class="container">
+
+<!-- CALCULATOR -->
+<div id="calc" class="card">
+<h3>Solution Concentration</h3>
+
+<select id="peptide">
+<option>Custom</option>
+<option>Retatrutide</option>
+<option>BPC-157</option>
+<option>Glow Blend</option>
+</select>
+
+<input id="mg" placeholder="Total mg in vial">
+<input id="ml" placeholder="BAC water (mL)">
+
+<button onclick="calc()">Calculate</button>
+
+<div class="result" id="out"></div>
+<div class="small" id="info"></div>
+</div>
+
+<!-- LIBRARY -->
+<div id="lib" class="card hidden">
+<h3>Peptide Library</h3>
+<div id="library"></div>
+</div>
+
+<!-- SAVED MIXES -->
+<div id="mix" class="card hidden">
+<h3>Saved Mixes</h3>
+
+<input id="name" placeholder="Mix Name">
+<input id="mmg" placeholder="mg">
+<input id="mml" placeholder="mL BAC Water">
+
+<button onclick="saveMix()">Save Mix</button>
+
+<div id="mixList"></div>
+</div>
+
+<!-- INVENTORY -->
+<div id="inv" class="card hidden">
+<h3>Inventory Tracker</h3>
+
+<input id="vials" placeholder="Number of Vials">
+<input id="mgv" placeholder="mg per vial">
+
+<button onclick="inventory()">Calculate</button>
+
+<div class="result" id="invOut"></div>
+</div>
+
+<!-- COST -->
+<div id="cost" class="card hidden">
+<h3>Cost Analysis</h3>
+
+<input id="costInput" placeholder="Total Cost ($)">
+<input id="mgInput" placeholder="Total mg">
+
+<button onclick="costCalc()">Calculate</button>
+
+<div class="result" id="costOut"></div>
+</div>
+
+</div>
+
+<script>
+
+/* NAV */
+function show(id){
+ document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden'));
+ document.getElementById(id).classList.remove('hidden');
+}
+
+/* CALC */
+function calc(){
+ let mg = +document.getElementById('mg').value;
+ let ml = +document.getElementById('ml').value;
+
+ if(!mg || !ml) return;
+
+ let conc = mg / ml;
+
+ document.getElementById('out').innerText =
+ "Concentration: " + conc.toFixed(3) + " mg/mL";
+
+ document.getElementById('info').innerText =
+ "Total: " + mg + " mg / " + ml + " mL";
+}
+
+/* LIBRARY */
+const peptides = [
+ {name:"Retatrutide", desc:"Metabolic research compound"},
+ {name:"BPC-157", desc:"Recovery research peptide"},
+ {name:"Glow Blend", desc:"GHK-Cu + BPC-157 + TB-500"}
+];
+
+let html = "";
+peptides.forEach(p=>{
+ html += `<div style="margin-bottom:10px;">
+ <b>${p.name}</b><br>
+ <span class="small">${p.desc}</span>
+ </div>`;
+});
+document.getElementById("library").innerHTML = html;
+
+/* MIXES */
+let mixes = JSON.parse(localStorage.getItem("mixes") || "[]");
+
+function saveMix(){
+ let m = {
+ name: name.value,
+ mg: mmg.value,
+ ml: mml.value
+ };
+
+ mixes.push(m);
+ localStorage.setItem("mixes", JSON.stringify(mixes));
+
+ renderMixes();
+}
+
+function renderMixes(){
+ let out = "";
+
+ mixes.forEach(m=>{
+ out += `<div style="margin-top:8px;">
+ <b>${m.name}</b> — ${m.mg}mg / ${m.ml}mL
+ </div>`;
+ });
+
+ document.getElementById("mixList").innerHTML = out;
+}
+
+renderMixes();
+
+/* INVENTORY */
+function inventory(){
+ let v = +vials.value;
+ let mg = +mgv.value;
+
+ if(!v || !mg) return;
+
+ invOut.innerText = "Total mg: " + (v * mg);
+}
+
+/* COST */
+function costCalc(){
+ let c = +costInput.value;
+ let m = +mgInput.value;
+
+ if(!c || !m) return;
+
+ costOut.innerText = "$" + (c/m).toFixed(2) + " per mg";
+}
+
+</script>
+
+</body>
+</html>
